@@ -1,24 +1,103 @@
-#' Predict method for (Single-Regressor) Linear and Nonlinear Model Fits
-#'
-#' use.
-#' 
-#' @rdname predict2
-#' @keywords internal
+##' Extract residual standard error
+##' 
+##' Extract residual standard error from a fitted model. (For internal use 
+##' only.)
+##' 
+##' @keywords internal
+Sigma <- function(object, ...) {
+  UseMethod("Sigma")
+} 
+Sigma.lm <- function(object, ...) summary(object)$sigma
+Sigma.nls <- function(object, ...) summary(object)$sigma
+Sigma.lme <- function(object, ...) object$sigma
+
+##' Make new data frame
+##' 
+##' Create a new data frame from a specified x value that has the same structure 
+##' as the data frame used to create \code{object}. 
+##' 
+##' @keywords internal
+makeData <- function(object, x) {
+  
+  ## FIXME: What if object$call$data is NULL?
+  .data <- if (inherits(object, "lme")) {
+    getData(object) # object$data
+  } else {
+    eval(object$call$data, sys.frame())
+  }
+  xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data))
+  if (length(xname) != 1) stop("Only a single predictor variable is allowed.")
+  newdata <- data.frame(x)
+  names(newdata) <- xname
+  newdata
+  
+}
+
+##' Construct design matrix for random effects
+##'
+##' Create a random effects design matrix from \code{newdata} based on a fitted 
+##' model.
+##' 
+##' @rdname makeZ
+##' @keywords internal
+makeZ <- function(object, newdata) {
+  Q <- object$dims$Q
+  mCall <- object$call
+  fixed <- eval(eval(mCall$fixed)[-2])
+  reSt <- object$modelStruct$reStruct
+  mfArgs <- list(formula = asOneFormula(formula(reSt), fixed),
+                 data = newdata, na.action = na.fail,
+                 drop.unused.levels = TRUE)
+  dataMix <- do.call("model.frame", mfArgs)
+  model.matrix(reSt, dataMix)
+}
+
+##' Construct design matrix for fixed effects
+##'
+##' Create a fixed effects design matrix from \code{newdata} based on a fitted 
+##' model. (For internal use only.)
+##' 
+##' @keywords internal
+makeX <- function(object, newdata) {
+  model.matrix(eval(object$call$fixed)[-2], data = newdata)
+}
+
+##' Evaluate response variance
+##'
+##' Evaluate response variance at a given value of the predictor variable. (For 
+##' internal use only.)
+##' 
+##' @keywords internal
+varY <- function(object, newdata) {
+  Z <- makeZ(object, newdata)  # random effects design matrix
+  G <- getVarCov(object)  # random effects variance covariance matrix
+  as.numeric(Z %*% G %*% t(Z) + Sigma(object)^2)  # ZGZ' + (sigma^2)I
+}
+
+##' Predict method for (Single-Regressor) Linear, Nonlinear, and (Linear) Mixed
+##' Model Fits
+##'
+##' Generic prediction method for various types of fitted models. (For internal 
+##' use only.)
+##' 
+##' @keywords internal
 predict2 <- function(object, ...) {
   UseMethod("predict2")
 } 
 
-#' @rdname predict2
-#' @keywords internal
+##' @keywords internal
 predict2.lm <- function(object, newdata, 
                         interval = c("none", "confidence", "prediction"), 
                         level = 0.95, 
                         adjust = c("none", "Bonferroni", "Scheffe"), k, 
                         ...) {
   
+  ## TODO:
+  ##   (1) How should missing values be handled?
+  
   ## Extract data, variables, etc.
   if (missing(newdata)) {
-    d <- eval(object$call$data, sys.frame())
+    d <- eval(object$call$data, envir = parent.frame())
     if (!is.null(object$call$subset)) {
       dsub <- with(d, eval(object$call$subset))
       d <- d[dsub, ]
@@ -53,9 +132,9 @@ predict2.lm <- function(object, newdata,
            qt(1 - alpha/(2*k), pred$df)
          } else if (adjust == "Scheffe") {
            if (interval == "confidence") {
-             sqrt(p*qf(1 - alpha, p, pred$df)) # Working-Hotelling band
+             sqrt(p*qf(1 - alpha, p, pred$df))  # Working-Hotelling band
            } else {
-             sqrt(k*qf(1 - alpha, k, pred$df)) # need k for prediction
+             sqrt(k*qf(1 - alpha, k, pred$df))  # need k for prediction
            }     
          } else {      
            qt(1 - alpha/2, pred$df)      
@@ -70,8 +149,8 @@ predict2.lm <- function(object, newdata,
     ## Prediction interval for individual response
     } else {
       
-      lwr <- pred$fit - w * sqrt(summary(object)$sigma^2 + pred$se.fit^2)
-      upr <- pred$fit + w * sqrt(summary(object)$sigma^2 + pred$se.fit^2)
+      lwr <- pred$fit - w * sqrt(Sigma(object)^2 + pred$se.fit^2)
+      upr <- pred$fit + w * sqrt(Sigma(object)^2 + pred$se.fit^2)
 
     }
     
@@ -86,31 +165,33 @@ predict2.lm <- function(object, newdata,
   
 }
 
-#' @rdname predict2
-#' @keywords internal
+##' @keywords internal
 predict2.nls <- function(object, newdata, 
                          interval = c("none", "confidence", "prediction"), 
                          level = 0.95, 
                          adjust = c("none", "Bonferroni", "Scheffe"), k, 
                          ...) {
   
+  ## TODO:
+  ##   (1) Add option se.fit
+  ##   (2) How should missing values be handled?
+  
   ## Extract data, variables, etc.
   if (missing(newdata)) {
-    d <- eval(object$call$data, sys.frame())
+    .data <- eval(if("data" %in% names(object)) object$data else object$call$data,
+                  envir = parent.frame())
     if (!is.null(object$call$subset)) {
-      dsub <- with(d, eval(object$call$subset))
-      d <- d[dsub, ]
+      .data <- .data[with(.data, eval(object$call$subset)), ]  # subset data
     }
   } else {
-    d <- as.data.frame(newdata) 
+    .data <- as.data.frame(newdata) 
   }
   yname <- all.vars(formula(object)[[2]])
-  xname <- intersect(all.vars(formula(object)[[3]]), colnames(d))
-  xx <- d[[xname]]
-  alpha <- 1 - level
-  n <- length(resid(object))
-  p <- length(coef(object))
-  alpha <- 1 - level
+  xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data))
+  xx <- .data[[xname]]       # predictor values
+  alpha <- 1 - level         # alpha level
+  n <- length(resid(object)) # sample size
+  p <- length(coef(object))  # number of regression parameters
   
   ## Stop if object$call$algorithm == "plinear"
   if (object$call$algorithm == "plinear") {
@@ -118,12 +199,12 @@ predict2.nls <- function(object, newdata,
                 plinear algorithm"))
   }
   
-  ## Compute gradient
+  ## Compute gradient 
   param.names <- names(coef(object)) 
   for (i in 1:length(param.names)) { 
-    assign(param.names[i], coef(object)[i]) 
+    assign(param.names[i], coef(object)[i])  # FIXME: Should assign be used here?
   }
-  assign(xname, d[, xname])
+  assign(xname, .data[, xname])
   form <- object$m$formula()
   rhs <- eval(form[[3]])
   if (is.null(attr(rhs, "gradient"))) {
@@ -135,9 +216,8 @@ predict2.nls <- function(object, newdata,
   ## Compute standard error of fitted values
   R1 <- object$m$Rmat()
   v0 <- diag(f0 %*% solve(t(R1) %*% R1) %*% t(f0))
-  se.fit <- sqrt(summary(object)$sigma^2 * v0)
-  pred <- list(fit = object$m$predict(d), 
-               se.fit = se.fit)  
+  se.fit <- sqrt(Sigma(object)^2 * v0)
+  pred <- list(fit = object$m$predict(.data), se.fit = se.fit)  
 
   ## Compute results
   interval <- match.arg(interval)
@@ -171,8 +251,8 @@ predict2.nls <- function(object, newdata,
       ## Prediction interval for individual response
     } else {
       
-      lwr <- pred$fit - w * sqrt(summary(object)$sigma^2 + pred$se.fit^2)
-      upr <- pred$fit + w * sqrt(summary(object)$sigma^2 + pred$se.fit^2)
+      lwr <- pred$fit - w * sqrt(Sigma(object)^2 + pred$se.fit^2)
+      upr <- pred$fit + w * sqrt(Sigma(object)^2 + pred$se.fit^2)
       
     }
     
@@ -188,37 +268,53 @@ predict2.nls <- function(object, newdata,
   
 }
 
-#' Crystal weight data
-#' 
-#' The data give the growing time and final weight of crystals.
-#' 
-#' \itemize{
-#'   \item time time taken to grow (hours)  
-#'   \item weight final weight of the crystal (grams) 
-#' }
-#' @docType data
-#' @keywords datasets
-#' @format A data frame with 14 rows and 2 variables
-#' @name crystal  
-#' @references
-#' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
-#' Applications. Belmont, Calif: Duxbury Press, 1994.                      
+##' @keywords internal
+predict2.lme <- function(object, newdata, se.fit = FALSE, ...) {
+  
+  ## TODO:
+  ##   (1) Check output from se.fit = TRUE against SAS
+  
+  if (missing(newdata)) newdata <- object$data
+  fit <- predict(object, newdata = newdata, level = 0)
+  if (se.fit) {
+    X <- makeX(object, makeData(object, newdata))
+    se.fit <- sqrt(diag(X %*% vcov(object) %*% t(X)))
+    list(fit = fit, se.fit = se.fit)
+  } else fit
+  
+}
+
+##' Crystal weight data
+##' 
+##' The data give the growing time and final weight of crystals.
+##' 
+##' \itemize{
+##'   \item time time taken to grow (hours)  
+##'   \item weight final weight of the crystal (grams) 
+##' }
+##' @docType data
+##' @keywords datasets
+##' @format A data frame with 14 rows and 2 variables
+##' @name crystal  
+##' @references
+##' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
+##' Applications. Belmont, Calif: Duxbury Press, 1994.                      
 NULL
 
-#' Concentrations of arsenic in water samples
-#' 
-#' The data give the actual and measures concentration of arsenic present in 
-#' water samples.
-#' 
-#' \itemize{
-#'   \item actual True amount of arsenic present
-#'   \item measured Measured amount of arsenic present 
-#' }
-#' @docType data
-#' @keywords datasets
-#' @format A data frame with 32 rows and 2 variables
-#' @name arsenic  
-#' @references 
-#' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
-#' Applications. Belmont, Calif: Duxbury Press, 1994.
+##' Concentrations of arsenic in water samples
+##' 
+##' The data give the actual and measures concentration of arsenic present in 
+##' water samples.
+##' 
+##' \itemize{
+##'   \item actual True amount of arsenic present
+##'   \item measured Measured amount of arsenic present 
+##' }
+##' @docType data
+##' @keywords datasets
+##' @format A data frame with 32 rows and 2 variables
+##' @name arsenic  
+##' @references 
+##' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
+##' Applications. Belmont, Calif: Duxbury Press, 1994.
 NULL 

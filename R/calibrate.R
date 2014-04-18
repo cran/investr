@@ -1,83 +1,83 @@
-#' Calibration for the simple linear regression model.
-#' 
-#' The function \code{calibrate} computes the maximum likelihood estimate and a
-#' condfidence interval for the unknown predictor value that corresponds to an 
-#' observed value of the response (or vector thereof) or specified value of the 
-#' mean response. See the reference listed below for more details.
-#'  
-#' @param object An object that inherits from class \code{lm}, a matrix, a list, 
-#' or a data frame.
-#' @param formula A formula of the form \code{y ~ x}.
-#' @param data an optional data frame, list or environment (or object coercible 
-#' by \code{as.data.frame} to a data frame) containing the variables in the 
-#' model. If not found in data, the variables are taken from 
-#' \code{environment(formula)}, typically the environment from which \code{lm}
-#' is called. 
-#' @param subset An optional vector specifying a subset of observations to be 
-#' used in the fitting process.
-#' @param na.action a function which indicates what should happen when the data 
-#' contain \code{NA}s. 
-#' @param y0 The value of the observed response(s) or specified value of the
-#'           mean response.
-#' @param interval The method to use for forming a confidence interval.
-#' @param level A numeric scalar between 0 and 1 giving the confidence level for 
-#'              the interval to be calculated. 
-#' @param mean.response Logicial indicating whether confidence intervals should 
-#' correspond to an observed response(s) (\code{FALSE}) or a specified value of 
-#' the mean response (\code{TRUE}). Default is \code{FALSE}.
-#' @param adjust A logical value indicating if an adjustment should be made to
-#'               the critical value used in calculating the confidence interval.
-#'               This useful for when the calibration curve is to be used 
-#'               multiple, say k, times.
-#' @param k The number times the calibration curve is to be used for computing a 
-#'          confidence interval. Only needed when \code{adjust = TRUE}.
-#' @param ... Additional optional arguments. At present, no optional arguments 
-#'            are used.
-#' @return An object of class \code{calibrate} containing the following 
-#'         components:
-#' \describe{
-#'   \item{\code{estimate}}{The estimate of x0.}
-#'   \item{\code{lwr}}{The lower confidence limit for x0.}
-#'   \item{\code{upr}}{The upper confidence limit for x0.}
-#'   \item{\code{se}}{An estimate of the standard error (Wald interval only).}
-#'   \item{\code{interval}}{The method used for calculating \code{lower} and 
-#'                   \code{upper} (only used by \code{print} method).}
-#' }
-#' @references 
-#' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
-#' Applications. Belmont, Calif: Duxbury Press, 1994.
-#' @rdname calibrate
-#' @aliases print.calibrate
-#' @export
-#' @section Warning:
-#'   You must not call this function unless ...
-#' @note The function \code{invest} is more general, but based on numerical
-#' techniques to find the solution. When the underlying model is that of the 
-#' simple linear regression model with normal errors, closed-form expressions
-#' exist which are utilized by the function \code{calibrate}.
-#' @examples
-#' \donttest{
-#' ## Inverting a prediction interval for an individual response
-#' arsenic.lm <- lm(measured ~ actual, data = arsenic)
-#' plotFit(arsenic.lm, interval = "prediction", shade = TRUE, 
-#'         col.pred = "lightblue")
-#' calibrate(arsenic.lm, y0 = 3, interval = "inversion")
-#' 
-#' ## Inverting a confidence interval for the mean response
-#' crystal.lm <- lm(weight ~ time, data = crystal)
-#' plotFit(crystal.lm, interval = "confidence", shade = TRUE,
-#'         col.conf = "lightblue")
-#' calibrate(crystal.lm, y0 = 8, interval = "inversion", mean.response = TRUE)
-#'
-#' ## Wald interval and approximate standard error based on the delta method
-#' calibrate(crystal.lm, y0 = 8, interval = "Wald", mean.response = TRUE)
-#' 
-#' ## Alterntively, we can use the car package to compute the standard error (this 
-#' ## is trickier though when mean.respone = FALSE, hence, it is better to use the
-#' ## calibrate function).
-#' library(car)
-#' deltaMethod(crystal.lm, g = "(8 - b0) / b1", parameterNames = c("b0", "b1"))
-#' }
+##' Calibration for the simple linear regression model.
+##' 
+##' The function \code{calibrate} computes the maximum likelihood estimate and a
+##' condfidence interval for the unknown predictor value that corresponds to an 
+##' observed value of the response (or vector thereof) or specified value of the 
+##' mean response. See the reference listed below for more details.
+##'  
+##' @param object An object that inherits from class \code{lm}, a matrix, a list, 
+##' or a data frame.
+##' @param formula A formula of the form \code{y ~ x}.
+##' @param data an optional data frame, list or environment (or object coercible 
+##' by \code{as.data.frame} to a data frame) containing the variables in the 
+##' model. If not found in data, the variables are taken from 
+##' \code{environment(formula)}, typically the environment from which \code{lm}
+##' is called. 
+##' @param subset An optional vector specifying a subset of observations to be 
+##' used in the fitting process.
+##' @param na.action a function which indicates what should happen when the data 
+##' contain \code{NA}s. 
+##' @param y0 The value of the observed response(s) or specified value of the
+##'           mean response.
+##' @param interval The method to use for forming a confidence interval.
+##' @param level A numeric scalar between 0 and 1 giving the confidence level for 
+##'              the interval to be calculated. 
+##' @param mean.response Logicial indicating whether confidence intervals should 
+##' correspond to an observed response(s) (\code{FALSE}) or a specified value of 
+##' the mean response (\code{TRUE}). Default is \code{FALSE}.
+##' @param adjust A logical value indicating if an adjustment should be made to
+##'               the critical value used in calculating the confidence interval.
+##'               This useful for when the calibration curve is to be used 
+##'               multiple, say k, times.
+##' @param k The number times the calibration curve is to be used for computing a 
+##'          confidence interval. Only needed when \code{adjust = TRUE}.
+##' @param ... Additional optional arguments. At present, no optional arguments 
+##'            are used.
+##' @return An object of class \code{calibrate} containing the following 
+##'         components:
+##' \describe{
+##'   \item{\code{estimate}}{The estimate of x0.}
+##'   \item{\code{lwr}}{The lower confidence limit for x0.}
+##'   \item{\code{upr}}{The upper confidence limit for x0.}
+##'   \item{\code{se}}{An estimate of the standard error (Wald interval only).}
+##'   \item{\code{interval}}{The method used for calculating \code{lower} and 
+##'                   \code{upper} (only used by \code{print} method).}
+##' }
+##' @references 
+##' Graybill, F. A., and Iyer, H. K. Regression analysis: Concepts and 
+##' Applications. Belmont, Calif: Duxbury Press, 1994.
+##' @rdname calibrate
+##' @aliases print.calibrate
+##' @export
+##' @section Warning:
+##'   You must not call this function unless ...
+##' @note The function \code{invest} is more general, but based on numerical
+##' techniques to find the solution. When the underlying model is that of the 
+##' simple linear regression model with normal errors, closed-form expressions
+##' exist which are utilized by the function \code{calibrate}.
+##' @examples
+##' \donttest{
+##' ## Inverting a prediction interval for an individual response
+##' arsenic.lm <- lm(measured ~ actual, data = arsenic)
+##' plotFit(arsenic.lm, interval = "prediction", shade = TRUE, 
+##'         col.pred = "lightblue")
+##' calibrate(arsenic.lm, y0 = 3, interval = "inversion")
+##' 
+##' ## Inverting a confidence interval for the mean response
+##' crystal.lm <- lm(weight ~ time, data = crystal)
+##' plotFit(crystal.lm, interval = "confidence", shade = TRUE,
+##'         col.conf = "lightblue")
+##' calibrate(crystal.lm, y0 = 8, interval = "inversion", mean.response = TRUE)
+##'
+##' ## Wald interval and approximate standard error based on the delta method
+##' calibrate(crystal.lm, y0 = 8, interval = "Wald", mean.response = TRUE)
+##' 
+##' ## Alterntively, we can use the car package to compute the standard error (this 
+##' ## is trickier though when mean.respone = FALSE, hence, it is better to use the
+##' ## calibrate function).
+##' library(car)
+##' deltaMethod(crystal.lm, g = "(8 - b0) / b1", parameterNames = c("b0", "b1"))
+##' }
 # calibrate <- function(z, ...) {
 #   ## TODO:
 #   ##   (1) Add option for maximum modulus intervals; adjust = "maximum".
@@ -89,9 +89,9 @@ calibrate <- function(object, ...) {
   UseMethod("calibrate")
 }
 
-#' @rdname calibrate
-#' @export
-#' @method calibrate default
+##' @rdname calibrate
+##' @export
+##' @method calibrate default
 calibrate.default <- function(object, y0, interval = c("inversion", "Wald"), 
                               level = 0.95, mean.response = FALSE, 
                               adjust = c("none", "Bonferroni", "Scheffe"), k, 
@@ -113,7 +113,7 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
                  "' not of same length.", sep = ""))
     }
   } else {
-    stop(paste("The object '", deparse(substitute(object)), 
+    stop(paste(deparse(substitute(object)), 
                "' is not a valid matrix, list, or data frame.", sep = ""))
   }
   eta <- mean(y0)             # mean of new observations
@@ -124,7 +124,7 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
   v1 <- n - 2                 # stage I degrees of freedom
   v2 <- m - 1                 # stage II degrees of freedom
   v <- v1 + v2                # total degrees of freedom
-  u1 <- summary(z)$sigma^2    # stage I variance estimate
+  u1 <- Sigma(z)^2            # stage I variance estimate
   u2 <- if (m == 1) 0 else var(y0) # stage II variance estimate
   u <- (v1*u1 + v2*u2)/v      # pooled estimate of variance
   sigma <- sqrt(u)            # sqrt of pooled variance estimate
@@ -149,7 +149,7 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
          qt(1 - alpha/2, n+m-3)
        }
 
-  ## Calculate inversion interval
+  ## Inversion interval --------------------------------------------------------
   if (interval == "inversion") { 
 
     c1 <- b[2L]^2 - (sigma^2 * w^2)/ssx
@@ -174,8 +174,11 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
       upr <- mean(x) + (c3 + c4*sqrt(c2))/c1
       if (c1 < 0 && c2 > 0) {
         
-        stop(paste("The calibration line is not well determined.\nReturning two semi-infinite intervals:\n(", -Inf, ",", 
-                   round(upr, 4), ") and (", round(lwr, 4), ",", Inf, ")"), 
+#         stop(paste("The calibration line is not well determined.\nReturning two semi-infinite intervals:\n(", -Inf, ",", 
+#                    round(upr, 4), ") and (", round(lwr, 4), ",", Inf, ")"), 
+#              call. = FALSE)
+        stop(paste("The calibration line is not well determined. The resulting \nconfidence region is the union of two semi-infinite intervals:\n(", -Inf, ",", 
+                   round(upr, 4), ") U (", round(lwr, 4), ",", Inf, ")"), 
              call. = FALSE)
         
       }
@@ -185,9 +188,11 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
                 "lower" = lwr,
                 "upper" = upr,
                 "interval" = interval)
+  
+  }
     
-  ## Calculate Wald interval  
-  } else if (interval == "Wald") { 
+  ## Wald interval  
+  if (interval == "Wald") { 
     
     ## Compute standard error for Wald interval
     se <- if (mean.response) {
@@ -211,9 +216,9 @@ calibrate.default <- function(object, y0, interval = c("inversion", "Wald"),
   
 } 
 
-#' @rdname calibrate
-#' @export
-#' @method calibrate formula
+##' @rdname calibrate
+##' @export
+##' @method calibrate formula
 calibrate.formula <- function(formula, data = NULL, ..., subset, 
                               na.action = na.fail) {
   m <- match.call(expand.dots = FALSE)
@@ -232,15 +237,15 @@ calibrate.formula <- function(formula, data = NULL, ..., subset,
   calibrate(cbind(x, y), ...)
 } 
 
-#' @rdname calibrate
-#' @export
-#' @method calibrate lm
+##' @rdname calibrate
+##' @export
+##' @method calibrate lm
 calibrate.lm <- function(object, ...) {
   d <- eval(object$call$data) # may be null
   calibrate(formula(object), data = d, ...)
 } 
 
-#' @keywords internal
+##' @keywords internal
 print.calibrate <- function(x, digits = 4, ...) {
   if (x$interval == "inversion") print(round(unlist(x[1:3]), digits))
   if (x$interval == "Wald") print(round(unlist(x[1:4]), digits))
