@@ -1,6 +1,6 @@
 ## The following tests are for calibration with simple linear regression models 
 ## fit using the lm() function.
-context("Calibration and regulation in the simple linear regression model")
+context("Inverse estimation in the simple linear regression model")
 
 test_that("output matches answers to Graybill and Iyer (1996, chap. 6)", {
     
@@ -79,7 +79,7 @@ test_that("approximate standard error is correct", {
                              #parameterNames = c("b0", "b1"))$SE
 
   ## Expectations
-  expect_that(round(crystal.cal$se, 5), equals(round(se.cal, 5))) # small diff
-  expect_that(crystal.reg$se, equals(se.reg))
+  expect_that(crystal.cal$se, equals(se.cal, tol = 1e-04)) # small diff
+  expect_that(crystal.reg$se, equals(se.reg, tol = 1e-04))
   
 })
