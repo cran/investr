@@ -1,88 +1,82 @@
-context("Calibration")
+## Tests for calibrate.R
 
-test_that("correct output for crystal data to four decimal places", {
+context("Linear calibration/regulation - inversion interval")
+
+test_that("output matches answers to Graybill and Iyer (1996, chap. 6)", {
     
-  ## Setup
+  ## Thermostat example from Graybill and Iyer (1996, p. 431)
+  thermom <- data.frame(temp = seq(from = 96, to = 110, by = 2), 
+                        read = c(95.71, 98.16, 99.52, 102.09, 103.79, 106.18, 
+                                 108.14, 110.21))
+  thermom.cal1 <- calibrate(thermom, y0 = 104)
+  thermom.cal2 <- calibrate(thermom, y0 = 100, level = 0.9)
+  expect_that(round(thermom.cal1$estimate, 3), equals(103.995))
+  expect_that(round(thermom.cal1$lower, 1), equals(103.4))
+  expect_that(round(thermom.cal1$upper, 1), equals(104.6))
+  expect_that(round(thermom.cal2$estimate, 1), equals(100.1))
+  expect_that(round(thermom.cal2$lower, 2), equals(99.63))
+  expect_that(round(thermom.cal2$upper, 2), equals(100.59))
+  
+  ## Reaction chamber example from Graybill and Iyer (1996, p. 433)
+  chamber <- data.frame(dial = seq(from = 0, to = 100, by = 10), 
+                        temp = c(206.36, 225.52, 252.18, 289.33, 318.11, 349.49, 
+                                 383.03, 410.70, 444.40, 469.14, 501.16))
+  chamber.reg <- calibrate(chamber, y0 = 400, mean.response = TRUE, 
+                           level = 0.99)
+  expect_that(round(chamber.reg$estimate, 1), equals(66.5))
+  expect_that(round(chamber.reg$lower, 2), equals(65.07))
+  expect_that(round(chamber.reg$upper, 2), equals(68.03))
+  
+  ## Crystal weight example from Graybill and Iyer (1996, p. 434)
   crystal.lm <- lm(weight ~ time, data = crystal)
-  cal.inv <- calibrate(crystal.lm, y0 = 8, interval = "inversion")
-  cal.del <- calibrate(crystal.lm, y0 = 8, interval = "Wald")
-  reg.inv <- calibrate(crystal.lm, y0 = 8, interval = "inversion", 
-                       mean.response = TRUE)
-  reg.del <- calibrate(crystal.lm, y0 = 8, interval = "Wald", 
-                       mean.response = TRUE)
-  cal.inv.est <- round(cal.inv$estimate, digits = 4)
-  cal.del.est <- round(cal.del$estimate, digits = 4)
-  cal.inv.lwr <- round(cal.inv$lower, digits = 4)
-  cal.del.lwr <- round(cal.del$lower, digits = 4)
-  cal.inv.upr <- round(cal.inv$upper, digits = 4)
-  cal.del.upr <- round(cal.del$upper, digits = 4)
-  cal.del.se <- round(cal.del$se, digits = 4)
-  reg.inv.est <- round(reg.inv$estimate, digits = 4)
-  reg.del.est <- round(reg.del$estimate, digits = 4)
-  reg.inv.lwr <- round(reg.inv$lower, digits = 4)
-  reg.del.lwr <- round(reg.del$lower, digits = 4)
-  reg.inv.upr <- round(reg.inv$upper, digits = 4)
-  reg.del.upr <- round(reg.del$upper, digits = 4)
-  reg.del.se <- round(reg.del$se, digits = 4)
-  
-  ## Expectations
-  expect_that(cal.inv.est, equals(15.8882))
-  expect_that(cal.del.est, equals(15.8882))
-  expect_that(cal.inv.lwr, equals(11.0946))
-  expect_that(cal.del.lwr, equals(11.1297))
-  expect_that(cal.inv.upr, equals(20.7240))
-  expect_that(cal.del.upr, equals(20.6467))
-  expect_that(cal.del.se, equals(2.1840))
-  expect_that(reg.inv.est, equals(15.8882))
-  expect_that(reg.del.est, equals(15.8882))
-  expect_that(reg.inv.lwr, equals(14.6590))
-  expect_that(reg.del.lwr, equals(14.6526 ))
-  expect_that(reg.inv.upr, equals(17.1596))
-  expect_that(reg.del.upr, equals(17.1238))
-  expect_that(reg.del.se, equals(0.5671))
+  crystal.reg <- calibrate(crystal.lm, y0 = 5, mean.response = TRUE, 
+                           level = 0.9)
+  expect_that(round(crystal.reg$estimate, 2), equals(9.93))
+  expect_that(round(crystal.reg$lower, 2), equals(8.65))
+  expect_that(round(crystal.reg$upper, 2), equals(11.05))
   
 })
 
-test_that("correct output for arsenic data to four decimal places", {
-    
-  ## Setup
-  arsenic.lm <- lm(measured ~ actual, data = arsenic)
-  cal.inv <- calibrate(arsenic.lm, y0 = 3, interval = "inversion")
-  cal.del <- calibrate(arsenic.lm, y0 = 3, interval = "Wald")
-  reg.inv <- calibrate(arsenic.lm, y0 = 3, interval = "inversion", 
-                       mean.response = TRUE)
-  reg.del <- calibrate(arsenic.lm, y0 = 3, interval = "Wald", 
-                       mean.response = TRUE)
-  cal.inv.est <- round(cal.inv$estimate, digits = 4)
-  cal.del.est <- round(cal.del$estimate, digits = 4)
-  cal.inv.lwr <- round(cal.inv$lower, digits = 4)
-  cal.del.lwr <- round(cal.del$lower, digits = 4)
-  cal.inv.upr <- round(cal.inv$upper, digits = 4)
-  cal.del.upr <- round(cal.del$upper, digits = 4)
-  cal.del.se <- round(cal.del$se, digits = 4)
-  reg.inv.est <- round(reg.inv$estimate, digits = 4)
-  reg.del.est <- round(reg.del$estimate, digits = 4)
-  reg.inv.lwr <- round(reg.inv$lower, digits = 4)
-  reg.del.lwr <- round(reg.del$lower, digits = 4)
-  reg.inv.upr <- round(reg.inv$upper, digits = 4)
-  reg.del.upr <- round(reg.del$upper, digits = 4)
-  reg.del.se <- round(reg.del$se, digits = 4)
+test_that("errors are handled appropriately", {
   
-  ## Expectations
-  expect_that(cal.inv.est, equals(2.9314))
-  expect_that(cal.del.est, equals(2.9314))
-  expect_that(cal.inv.lwr, equals(2.5367))
-  expect_that(cal.del.lwr, equals(2.5374))
-  expect_that(cal.inv.upr, equals(3.3251))
-  expect_that(cal.del.upr, equals(3.3255))
-  expect_that(cal.del.se, equals(0.1929))
-  expect_that(reg.inv.est, equals(2.9314))
-  expect_that(reg.del.est, equals(2.9314))
-  expect_that(reg.inv.lwr, equals(2.8603))
-  expect_that(reg.del.lwr, equals(2.8608))
-  expect_that(reg.inv.upr, equals(3.0016))
-  expect_that(reg.del.upr, equals(3.0021))
-  expect_that(reg.del.se, equals(0.0346))
+  ## Simulated data
+  set.seed(101)
+  x <- rep(seq(from = 0, to = 10, length = 10), 2)
+  y <-  3 + 0.01*x + rnorm(length(x), sd = 0.5)
+  d1 <- data.frame(x, y)
+  d2 <- list(x = 1:11, y = 1:10 + rnorm(10, sd = 1))
+  #   fit <- lm(y ~ x, data = d)
+  #   plotFit(fit, interval = "both", xlim = c(-10, 25))
+  #   abline(h = c(2, 3), col = "red")
+  expect_that(calibrate(d1, y0 = 3), gives_warning())
+  expect_that(calibrate(d1, y0 = 3, mean.response = TRUE), gives_warning())
+  expect_that(calibrate(d1, y0 = 2), throws_error())
+  expect_that(calibrate(d1, y0 = 2.5, mean.response = TRUE), throws_error())
+  expect_that(calibrate(d2, y0 = 2.5), throws_error())
+  expect_that(calibrate(y ~ x + I(x^2), y0 = 2.5), throws_error())
   
 })
 
+context("Linear calibration/regulation - Wald interval")
+
+test_that("approximate standard error is correct", {
+  
+  ## Crystal weight example from Graybill and Iyer (1996, p. 434)
+  crystal.lm <- lm(weight ~ time, data = crystal)
+  crystal.cal <- calibrate(crystal.lm, y0 = 5, interval = "Wald")
+  crystal.reg <- calibrate(crystal.lm, y0 = 5, interval = "Wald", 
+                           mean.response = TRUE)
+  
+  ## Calculate and compare standard error using invest and car::deltaMethod
+  covmat.cal <- diag(3)
+  covmat.cal[1:2, 1:2] <- vcov(crystal.lm)
+  covmat.cal[3, 3] <- summary(crystal.lm)$sigma^2
+  coefs <- unname(coef(crystal.lm))
+  params <- c(b0 = coefs[1], b1 = coefs[2], y0 = 5)
+  se.cal <- 2.211698 #car::deltaMethod(params, g = "(y0-b0)/b1", vcov. = covmat.cal)$SE
+  se.reg <- 0.6658998 #car::deltaMethod(crystal.lm, g = "(5-b0)/b1", 
+                             #parameterNames = c("b0", "b1"))$SE
+  expect_that(round(crystal.cal$se, 5), equals(round(se.cal, 5))) # small diff
+  expect_that(crystal.reg$se, equals(se.reg))
+  
+})
