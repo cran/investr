@@ -1,14 +1,13 @@
 Package: investr
 Type: Package
-Title: Inverse estimation/calibration functions
-Version: 1.1.1
+Title: Inverse Estimation/Calibration Functions
+Version: 1.1.2
 Author: Brandon M. Greenwell
 Maintainer: Brandon M. Greenwell <greenwell.brandon@gmail.com>
-Description: This package provides functions to facilitate inverse 
-        estimation/calibration in linear, nonlinear, and (linear) mixed models. 
-        A generic function is also provided for plotting fitted regression 
-        models with or without confidence/prediction bands that may be of use to 
-        the general user.
+Description: Functions to facilitate inverse estimation/calibration in linear,
+    nonlinear, and (linear) mixed models. A generic function is also provided
+    for plotting fitted regression models with or without confidence/prediction
+    bands that may be of use to the general user.
 Depends: graphics, stats
 Suggests: boot, car, testthat
 Imports: nlme
@@ -17,7 +16,7 @@ License: GPL (>= 2)
 URL: https://github.com/w108bmg/investr
 LazyLoad: true
 LazyData: true
-Packaged: 2014-09-09 14:49:45 UTC; w108bmg
+Packaged: 2014-09-14 16:27:54 UTC; w108bmg
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2014-09-09 17:47:07
+Date/Publication: 2014-09-15 07:26:12

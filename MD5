@@ -1,6 +1,6 @@
-656f496c86284d4932798806a8b641de *DESCRIPTION
+27dd37d399affb445aacbb2a3ed22d15 *DESCRIPTION
 7107e674db61312f9a10e5d83c5beb2a *NAMESPACE
-7a05393979f3b00081c1018532bd234d *NEWS
+2f7df1545a154b251fa45b1cbcafbd1b *NEWS
 83c6a69014c317b55379340bebaaadb6 *R/calibrate.R
 0010f2218fa11fd5617699f2a41cae32 *R/data.R
 794e131440e3bc93aa8e47bca2f68269 *R/invest.R
@@ -25,5 +25,6 @@ b253b259d472367819cf453060dd437d *man/predict2.Rd
 7fe88a6610929c59c62eaeeb671a247b *man/varY.Rd
 08fc72374182c078585c2e7c58be1720 *tests/testthat.R
 1e3b144299faaedf4d0638eee00e7c1a *tests/testthat/test-calibrate.R
-3fcef3f799726bc3d081d782e938a39e *tests/testthat/test-invest.R
-62745aacbd7e8a525c22fcc789068bc7 *tests/testthat/test-utilities.R
+27fb556880d72262392029aae95282d5 *tests/testthat/test-invest.R
+81556350cb47170b1c9121b3408dbfc3 *tests/testthat/test-predict2.R
+7b4573ca8b19b6fc95512c17de4971fe *tests/testthat/test-utilities.R
