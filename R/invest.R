@@ -93,16 +93,18 @@
 ##' mod <- nls(weight ~ theta1/(1 + exp(theta2 + theta3 * log(conc))),
 ##'            start = list(theta1 = 1000, theta2 = -1, theta3 = 1),
 ##'            data = nasturtium)
+##' plotFit(mod, lwd.fit = 2)
 ##'            
 ##' ## Compute approximate 95% calibration intervals
 ##' invest(mod, y0 = c(309, 296, 419), interval = "inversion")
 ##' invest(mod, y0 = c(309, 296, 419), interval = "Wald")  
 ##' 
-##' ## Bootstrap calibration intervals
-##' #boo <- invest(mod, y0 = c(309, 296, 419), boot = TRUE, nsim = 9999, 
-##' #              progress = TRUE, seed = 101)
-##' #boo  # print bootstrap summary
-##' #plot(boo)  # plot results
+##' ## Bootstrap calibration intervals. In general, nsim should be as large as 
+##' ## reasonably possible (say, nsim = 9999).
+##' boo <- invest(mod, y0 = c(309, 296, 419), boot = TRUE, nsim = 999, 
+##'               seed = 101)
+##' boo  # print bootstrap summary
+##' plot(boo)  # plot results
 invest <- function(object, ...) {
   UseMethod("invest")
 } 
@@ -233,7 +235,7 @@ invest.lm <- function(object, y0, interval = c("inversion", "Wald", "none"),
     x0.star <- sapply(seq_len(nsim), x0Fun)
     
     ## Check for errors and return the runs that did not fail
-    if (anyNA(x0.star)) {
+    if (AnyNA(x0.star)) {
       num_fail <- sum(is.na(x0.star))
       warning("some bootstrap runs failed (", num_fail, "/", nsim, 
               ")")
@@ -495,7 +497,7 @@ invest.nls <- function(object, y0, interval = c("inversion", "Wald", "none"),
     x0.star <- sapply(seq_len(nsim), x0Fun)
     
     ## Check for errors and return the runs that did not fail
-    if (anyNA(x0.star)) {
+    if (AnyNA(x0.star)) {
       num_fail <- sum(is.na(x0.star))
       warning("some bootstrap runs failed (", num_fail, "/", nsim, 
               ")")

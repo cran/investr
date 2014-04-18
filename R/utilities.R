@@ -1,3 +1,18 @@
+##' 'Not Available' / Missing Values
+##' 
+##' A simple version of the newer \code{anyNA} function which essentially
+##' implements any(is.na(x)).
+##' 
+##' @keywords internal
+AnyNA <- function(x) {
+#   if(getRversion() >= 3.1.0) {
+#     return(anyNA(x))  # use built-in function if available
+#   } else {
+#     return(any(is.na(x)))
+#   }
+  any(is.na(x))
+}
+  
 ##' Extract residual standard error
 ##' 
 ##' Extract residual standard error from a fitted model. (For internal use 
