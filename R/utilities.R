@@ -5,32 +5,15 @@
 #' 
 #' @keywords internal
 AnyNA <- function(x) {
-#   if(getRversion() >= "3.1.0") {
-#     return(anyNA(x))  # use built-in function if available
-#   } else {
-#     return(any(is.na(x)))
-#   }
   any(is.na(x))
 }
   
-#' Extract residual standard error
-#' 
-#' Extract residual standard error from a fitted model. (For internal use 
-#' only.)
-#' 
-#' @keywords internal
-Sigma <- function(object, ...) {
-  UseMethod("Sigma")
-} 
-Sigma.lm <- function(object, ...) summary(object)$sigma
-Sigma.nls <- function(object, ...) summary(object)$sigma
-Sigma.lme <- function(object, ...) object$sigma
 
 #' Make new data frame
 #' 
 #' Create a new data frame from a specified x value that has the same structure 
 #' as the data frame used to create \code{object}. (For internal use only.)
-#' 
+#' @importFrom stats setNames
 #' @keywords internal
 makeData <- function(x, label) {
   setNames(data.frame(x), label)
@@ -49,6 +32,8 @@ makeX <- function(object, newdata) {
 
 
 #' @rdname makeX
+#' @importFrom nlme asOneFormula
+#' @importFrom stats formula na.fail model.matrix
 #' @keywords internal
 makeZ <- function(object, newdata) {
   Q <- object$dims$Q  # number of grouping levels
@@ -62,11 +47,27 @@ makeZ <- function(object, newdata) {
   model.matrix(reSt, dataMix)
 }
 
+
+#' Extract residual standard error
+#' 
+#' Extract residual standard error from a fitted model. (For internal use 
+#' only.)
+#' 
+#' @keywords internal
+Sigma <- function(object, ...) {
+  UseMethod("Sigma")
+} 
+Sigma.lm <- function(object, ...) summary(object)$sigma
+Sigma.nls <- function(object, ...) summary(object)$sigma
+Sigma.lme <- function(object, ...) object$sigma
+
+
 #' Evaluate response variance
 #'
 #' Evaluate response variance at a given value of the predictor variable. (For 
 #' internal use only.)
 #' 
+#' @importFrom nlme getVarCov
 #' @keywords internal
 varY <- function(object, newdata) {
   Zmat <- makeZ(object, newdata)  # random effects design matrix

@@ -44,6 +44,9 @@
 #' TRUE.
 #' @param ... Additional optional arguments passed on to \code{plot}.
 #' @rdname plotFit
+#' @importFrom graphics lines plot polygon
+#' @importFrom grDevices extendrange grey
+#' @importFrom stats family formula getCall predict qnorm
 #' @export
 #' @note
 #' By default, the plotted intervals are pointwise intervals. For simultaneous 
@@ -84,8 +87,10 @@ plotFit <- function(object, ...) {
 
 
 #' @rdname plotFit
-#' @export
 #' @method plotFit lm
+#' @importFrom graphics plot
+#' @importFrom stats formula
+#' @export
 plotFit.lm <- function(object, 
                        interval = c("none", "both", "confidence", "prediction"), 
                        level = 0.95, data,
@@ -99,9 +104,20 @@ plotFit.lm <- function(object,
                        lwd.conf = 1, lwd.pred = 1, lwd.fit = 1, n = 500, 
                        xlab, ylab, xlim, ylim) {
   
-  # Preliminary (extract data, variable names, etc.)
-  .data  <- if (!missing(data)) data else eval(object$call$data, 
-                                               envir = parent.frame())
+  # Extract data 
+  if (!missing(data)) { 
+    .data <- data 
+  } else {
+    .data <- eval(getCall(object)$data, envir = parent.frame())
+  }
+  if (is.null(.data)) {  # throw error if no data are found
+    stop(paste("No data to plot. If the", class(object), "object does not",
+               "contain a data component then a data frame containing the", 
+               "variables in the model must be supplied through the 'data'", 
+               "argument to plotFit."))
+  }
+  
+  # Extract variable names and values
   xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data)) 
   yname <- all.vars(formula(object)[[2]])
   if (length(xname) != 1) stop("Only one independent variable allowed.")
@@ -110,7 +126,7 @@ plotFit.lm <- function(object,
   yvals <- with(.data, eval(formula(object)[[2]]))
   
   # Plot limits, labels, etc.
-  if (missing(xlim)) xlim <- range(xvals)  # default plot domain
+  if (missing(xlim)) xlim <- range(xvals)  # default limits for x-axis
   xgrid <- if (extend.range) {  # the x values at which to evaluate
     list(seq(from = extendrange(xlim)[1], to = extendrange(xlim)[2], 
              length = n))
@@ -124,7 +140,7 @@ plotFit.lm <- function(object,
   # Maximum and minimum of fitted values
   interval = match.arg(interval)
   if (interval == "none") {
-    fitvals <- predFit(object, newdata = xgrid)$fit
+    fitvals <- predFit(object, newdata = xgrid)
     fit.ymin <- min(fitvals)
     fit.ymax <- max(fitvals)
   }
@@ -134,8 +150,8 @@ plotFit.lm <- function(object,
   if (interval == "confidence" || interval == "both") {
     conf <- predFit(object, newdata = xgrid, interval = "confidence", 
                      level = level, adjust = adjust, k = k)
-    conf.lwr <- conf$lwr
-    conf.upr <- conf$upr
+    conf.lwr <- conf[, "lwr"]
+    conf.upr <- conf[, "upr"]
     conf.ymin <- min(conf.lwr)
     conf.ymax <- max(conf.upr)
   }
@@ -144,8 +160,8 @@ plotFit.lm <- function(object,
   if (interval == "prediction" || interval == "both") {
     pred <- predFit(object, newdata = xgrid, interval = "prediction", 
                      level = level, adjust = adjust, k = k)
-    pred.lwr <- pred$lwr
-    pred.upr <- pred$upr
+    pred.lwr <- pred[, "lwr"]
+    pred.upr <- pred[, "upr"]
     pred.ymin <- min(pred.lwr)
     pred.ymax <- max(pred.upr)
   }
@@ -253,9 +269,20 @@ plotFit.nls <- function(object,
                         lwd.conf = 1, lwd.pred = 1, lwd.fit = 1, n = 500, 
                         xlab, ylab, xlim, ylim) {
   
-  # Preliminary (extract variable information, etc.)
-  .data  <- if (!missing(data)) data else eval(object$call$data, 
-                                               envir = parent.frame())
+  # Extract data 
+  if (!missing(data)) { 
+    .data <- data 
+  } else {
+    .data <- eval(getCall(object)$data, envir = parent.frame())
+  }
+  if (is.null(.data)) {  # throw error if no data are found
+    stop(paste("No data to plot. If the", class(object), "object does not",
+               "contain a data component then a data frame containing the", 
+               "variables in the model must be supplied through the 'data'", 
+               "argument to plotFit."))
+  }
+  
+  # Extract variable names and values
   xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data)) 
   yname <- all.vars(formula(object)[[2]])
   if (length(xname) != 1) stop("Only one independent variable allowed.")
@@ -264,7 +291,7 @@ plotFit.nls <- function(object,
   yvals <- with(.data, eval(formula(object)[[2]]))
   
   # Plot limits, labels, etc.
-  if (missing(xlim)) xlim <- range(xvals)  # default plot domain
+  if (missing(xlim)) xlim <- range(xvals)  # default limits for x-axis
   xgrid <- if (extend.range) {  # set up plotting grid
     list(seq(from = extendrange(xlim)[1], to = extendrange(xlim)[2], 
              length = n))
@@ -278,7 +305,7 @@ plotFit.nls <- function(object,
   # Maximum and minimum of fitted values
   interval = match.arg(interval)
   if (interval == "none") {
-    fitvals <- predFit(object, newdata = xgrid)$fit
+    fitvals <- predFit(object, newdata = xgrid)
     fit.ymin <- min(fitvals)
     fit.ymax <- max(fitvals)
   }
@@ -288,8 +315,8 @@ plotFit.nls <- function(object,
   if (interval == "confidence" || interval == "both") {
     conf <- predFit(object, newdata = xgrid, interval = "confidence", 
                      level = level, adjust = adjust, k = k)
-    conf.lwr <- conf$lwr
-    conf.upr <- conf$upr
+    conf.lwr <- conf[, "lwr"]
+    conf.upr <- conf[, "upr"]
     conf.ymin <- min(conf.lwr)
     conf.ymax <- max(conf.upr)
   }
@@ -298,8 +325,8 @@ plotFit.nls <- function(object,
   if (interval == "prediction" || interval == "both") {
     pred <- predFit(object, newdata = xgrid, interval = "prediction", 
                      level = level, adjust = adjust, k = k)
-    pred.lwr <- pred$lwr
-    pred.upr <- pred$upr
+    pred.lwr <- pred[, "lwr"]
+    pred.upr <- pred[, "upr"]
     pred.ymin <- min(pred.lwr)
     pred.ymax <- max(pred.upr)
   }
@@ -404,9 +431,20 @@ plotFit.glm <- function(object, type = c("response", "link"),
                         lty.fit = 1, lwd.conf = 1, lwd.fit = 1, n = 500, 
                         xlab, ylab, xlim, ylim) {
   
-  # Preliminary (extract data, variable names, etc.)
-  .data  <- if (!missing(data)) data else eval(object$call$data, 
-                                               envir = parent.frame())
+  # Extract data 
+  if (!missing(data)) { 
+    .data <- data 
+  } else {
+    .data <- eval(getCall(object)$data, envir = parent.frame())
+  }
+  if (is.null(.data)) {  # throw error if no data are found
+    stop(paste("No data to plot. If the", class(object), "object does not",
+               "contain a data component then a data frame containing the", 
+               "variables in the model must be supplied through the 'data'", 
+               "argument to plotFit."))
+  }
+  
+  # Extract variable names and values
   xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data)) 
   yname <- all.vars(formula(object)[[2]])
   if (length(xname) != 1) stop("Only one independent variable allowed.")
@@ -436,7 +474,7 @@ plotFit.glm <- function(object, type = c("response", "link"),
   
   
   # Plot limits, labels, etc.
-  if (missing(xlim)) xlim <- range(xvals)  # default plot domain
+  if (missing(xlim)) xlim <- range(xvals)  # default limits for x-axis
   xgrid <- if (extend.range) {  # the x values at which to evaluate
     list(seq(from = extendrange(xlim)[1], to = extendrange(xlim)[2], 
              length = n))
@@ -540,9 +578,20 @@ plotFit.rlm <- function(object, data, ..., extend.range = FALSE, hide = TRUE,
                         col.fit = "black", lty.fit = 1, lwd.fit = 1, n = 500, 
                         xlab, ylab, xlim, ylim) {
   
-  # Preliminary (extract data, variable names, etc.)
-  .data  <- if (!missing(data)) data else eval(object$call$data, 
-                                               envir = parent.frame())
+  # Extract data 
+  if (!missing(data)) { 
+    .data <- data 
+  } else {
+    .data <- eval(getCall(object)$data, envir = parent.frame())
+  }
+  if (is.null(.data)) {  # throw error if no data are found
+    stop(paste("No data to plot. If the", class(object), "object does not",
+               "contain a data component then a data frame containing the", 
+               "variables in the model must be supplied through the 'data'", 
+               "argument to plotFit."))
+  }
+  
+  # Extract variable names and values
   xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data)) 
   yname <- all.vars(formula(object)[[2]])
   if (length(xname) != 1) stop("Only one independent variable allowed.")
@@ -551,7 +600,7 @@ plotFit.rlm <- function(object, data, ..., extend.range = FALSE, hide = TRUE,
   yvals <- with(.data, eval(formula(object)[[2]]))
   
   # Plot limits, labels, etc.
-  if (missing(xlim)) xlim <- range(xvals)  # default plot domain
+  if (missing(xlim)) xlim <- range(xvals)  # default limits for x-axis
   xgrid <- if (extend.range) {  # the x values at which to evaluate
     list(seq(from = extendrange(xlim)[1], to = extendrange(xlim)[2], 
              length = n))
@@ -590,9 +639,20 @@ plotFit.lqs <- function(object, data, ..., extend.range = FALSE, hide = TRUE,
                         col.fit = "black", lty.fit = 1, lwd.fit = 1, n = 500, 
                         xlab, ylab, xlim, ylim) {
   
-  # Preliminary (extract data, variable names, etc.)
-  .data  <- if (!missing(data)) data else eval(object$call$data, 
-                                               envir = parent.frame())
+  # Extract data 
+  if (!missing(data)) { 
+    .data <- data 
+  } else {
+    .data <- eval(getCall(object)$data, envir = parent.frame())
+  }
+  if (is.null(.data)) {  # throw error if no data are found
+    stop(paste("No data to plot. If the", class(object), "object does not",
+               "contain a data component then a data frame containing the", 
+               "variables in the model must be supplied through the 'data'", 
+               "argument to plotFit."))
+  }
+  
+  # Extract variable names and values
   xname <- intersect(all.vars(formula(object)[[3]]), colnames(.data)) 
   yname <- all.vars(formula(object)[[2]])
   if (length(xname) != 1) stop("Only one independent variable allowed.")
@@ -601,7 +661,7 @@ plotFit.lqs <- function(object, data, ..., extend.range = FALSE, hide = TRUE,
   yvals <- with(.data, eval(formula(object)[[2]]))
   
   # Plot limits, labels, etc.
-  if (missing(xlim)) xlim <- range(xvals)  # default plot domain
+  if (missing(xlim)) xlim <- range(xvals)  # default limits for x-axis
   xgrid <- if (extend.range) {  # the x values at which to evaluate
     list(seq(from = extendrange(xlim)[1], to = extendrange(xlim)[2], 
              length = n))
