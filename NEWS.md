@@ -1,55 +1,86 @@
-# NEWS for investr package
+# investr 1.4.2
 
-### Changes for version 1.0
+* Fixed the output of `predFit()` in situations whenever standard errors and confidence/predictions bands are both requested.
 
-* Added functions.
-* Fixed roxygen documentation.
+* New data sets `bladder` (a repeated measures data set) and `whisky`.
 
-### Changes for version 1.0.1
+* Fixed typos in documentation throughout the package.
 
-* A few minor bug fixes.
-* Slightly better documentation.
+* Updated URLs throughout the package.
 
-### Changes for version 1.1.0
+* Better y-axis limits when x-axis is on log scale (e.g., using log = "x"). Fixes issue #27.
 
-* invest now accepts objects of class 'lme' (experimental).
-* A few minor bug fixes and code improvements.
-* Added more tests.
+* Better default y-axis label when using `plotFit()` on a model with transformed response. For example, calling `plotFit(fit)` where `fit <- lm(sqrt(dist) ~ speed, data = cars)` will have a default y-axis label of `"sqrt(dist)"`.
 
-### Changes for version 1.1.1
+* `plotFit()` has been completely re-written using much less code.
 
-* Updated citation file.
-* Minor code changes.
-* plotFit should now plot models with transformed responses correctly.
-* Fixed error causing invest to fail because of a missing data argument.
-* Added more tests.
+* `predFit()` (and hence `plotFit()`) now works for `"nls"` objects fit using the Golub-Pereyra algorithm (i.e., `algorithm = "plinear"`); however, confidence/prediction bands are still not available.
 
-### Changes for version 1.1.2
+* New introductory vignette.
+
+# investr 1.4.0
+
+* Multiple predictor variables are allowed for `"lm"` and `"glm"` objects.
+
+* All non-base package functions are now imported.
+
+* The generic function `predFit()` is now exported. This function is used by **investr**
+  to obtain predictions, and hence, inverse predictions. For example, `predFit()` 
+  can be used to obtain prediction intervals for nonlinear least-squares fits 
+  (i.e., models of class `"nls"`).
+
+* Improved tests and test coverage.
+
+* `plotFit()` gained methods for `"rlm"` and `"lqs"` objects from package **MASS**.
+
+# investr 1.3.0
+
+* `invest()` now accepts objects of class `"glm"` (experimental).
+
+* Functions `calibrate()` and `invest()` now return an object of class `"invest"`.
+
+# investr 1.2.1
+
+* Cleaned up documentation.
+
+* Added `AnyNA()` function for those using older versions of R.
+
+# investr 1.2.0
+
+* Cleaned up examples.
+
+* Added `bootstrap` option to `invest()`.
+
+# investr 1.1.2
 
 * Changed tests to satisfy CRAN check.
 
-### Changes for version 1.2.0
+# investr 1.1.1
 
-* Cleaned up examples.
-* Added bootstrap option to invest.
+* Updated citation file.
 
-### Changes for version 1.2.1
+* Minor code changes.
 
-* Cleaned up documentation.
-* Added AnyNA function for those using older versions of R.
+* `plotFit()` should now plot models with transformed responses correctly.
 
-### Changes for version 1.3.0
+* Fixed error causing `invest()` to fail because of a missing data argument.
 
-* invest now accepts objects of class 'glm' (experimental).
-* Functions calibrate and invest now return an object of class "invest".
+* Added more tests.
 
-### Changes for version 1.3.1
+# investr 1.1.0
 
-* Multiple predictor variables are allowed for "lm" and "glm" objects.
-* All non-base package functions are now imported.
-* The generic function predFit is now exported. This function is used by investr 
-  to obtain predictions, and hence, inverse predictions. For example, predFit 
-  can be used to obtain prediction intervals for nonlinear least-squares fits 
-  (i.e., models of class "nls").
-* Improved tests and test coverage.
-* plotFit gained methods for "rlm" and "lqs" objects from package MASS.
+* `invest()` now accepts objects of class `"lme"` (experimental).
+
+* A few minor bug fixes and code improvements.
+
+* Added more tests.
+
+# investr 1.0.1
+
+* A few minor bug fixes.
+
+* Slightly better documentation.
+
+# investr 1.0
+
+* Initial release.

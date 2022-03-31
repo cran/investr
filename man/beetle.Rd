@@ -4,10 +4,12 @@
 \name{beetle}
 \alias{beetle}
 \title{Dobson's Beetle Data}
-\format{A data frame with 8 rows and 3 variables}
+\format{
+A data frame with 8 rows and 3 columns.
+}
 \source{
-A. Dobson, \emph{An Introduction to Generalized Linear Models}, Chapman &
-Hall/CRC, 2002.
+Dobson, A. (2002) \emph{An Introduction to Generalized Linear Models}. 
+Chapman & Hall/CRC.
 }
 \description{
 The data give the number of flour beetles killed after five hour exposure
@@ -21,4 +23,3 @@ to the insecticide carbon disulphide at eight different concentrations.
 }
 }
 \keyword{datasets}
-

@@ -94,11 +94,12 @@ test_that("predFit works properly on 'special' nls fits", {
   
   # Predictions
   pred <- predFit(DNase1_nls, se.fit = TRUE, interval = "prediction")
+  pred_2 <- predFit(DNase1_nls_2, interval = "none")
   pred_3 <- predFit(DNase1_nls_3, se.fit = TRUE, interval = "prediction")
   pred_4 <- predFit(DNase1_nls_4, se.fit = TRUE, interval = "prediction")
   
   # Expectations
-  expect_error(predFit(DNase1_nls_2))
+  expect_true(all.equal(pred$fit[, "fit"], pred_2, tol = 1e-06))
   expect_true(all.equal(pred$fit[, "fit"], pred_3$fit[, "fit"], tol = 1e-06))
   expect_true(all.equal(pred$fit[, "fit"], pred_4$fit[, "fit"], tol = 1e-06))
   expect_true(all.equal(pred$fit[, "lwr"], pred_3$fit[, "lwr"], tol = 1e-06))
@@ -129,23 +130,23 @@ test_that("predFit matches output from stats::predict", {
 
   # Predictions and confidence intervals
   pred.investr.conf <- predFit(lm1, interval = "confidence")
-  pred.stats.conf <- predict(lm1, interval = "confidence")
+  pred.stats.conf <- suppressWarnings(predict(lm1, interval = "confidence"))
 
   # Predictions and prediction intervals
   pred.investr.pred <- predFit(lm1, interval = "prediction")
-  pred.stats.pred <- predict(lm1, interval = "prediction")
+  pred.stats.pred <- suppressWarnings(predict(lm1, interval = "prediction"))
 
   # Predictions and standard errors
   pred.investr.se <- predFit(lm1, se.fit = TRUE)
-  pred.stats.se <- predict(lm1, se.fit = TRUE)
+  pred.stats.se <- suppressWarnings(predict(lm1, se.fit = TRUE))
 
   # Predictions, confidence intervals, and standard errors
   pred.investr.se.conf <- predFit(lm1, se.fit = TRUE, interval = "confidence")
-  pred.stats.se.conf <- predict(lm1, se.fit = TRUE, interval = "confidence")
+  pred.stats.se.conf <- suppressWarnings(predict(lm1, se.fit = TRUE, interval = "confidence"))
 
   # Predictions, prediction intervals, and standard errors
   pred.investr.se.pred <- predFit(lm1, se.fit = TRUE, interval = "prediction")
-  pred.stats.se.pred <- predict(lm1, se.fit = TRUE, interval = "prediction")
+  pred.stats.se.pred <- suppressWarnings(predict(lm1, se.fit = TRUE, interval = "prediction"))
 
   # Expectations
   expect_equal(pred.investr, pred.stats)

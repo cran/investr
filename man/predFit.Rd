@@ -2,20 +2,48 @@
 % Please edit documentation in R/predFit.R
 \name{predFit}
 \alias{predFit}
+\alias{predFit.default}
 \alias{predFit.lm}
-\alias{predFit.lme}
+\alias{predFit.glm}
 \alias{predFit.nls}
+\alias{predFit.lme}
 \title{Predictions from a Fitted Model}
 \usage{
 predFit(object, ...)
 
-\method{predFit}{lm}(object, newdata, se.fit = FALSE, interval = c("none",
-  "confidence", "prediction"), level = 0.95, adjust = c("none",
-  "Bonferroni", "Scheffe"), k, ...)
+\method{predFit}{default}(object, ...)
 
-\method{predFit}{nls}(object, newdata, se.fit = FALSE, interval = c("none",
-  "confidence", "prediction"), level = 0.95, adjust = c("none",
-  "Bonferroni", "Scheffe"), k, ...)
+\method{predFit}{lm}(
+  object,
+  newdata,
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  adjust = c("none", "Bonferroni", "Scheffe"),
+  k,
+  ...
+)
+
+\method{predFit}{glm}(
+  object,
+  newdata,
+  type = c("link", "response"),
+  se.fit = FALSE,
+  interval = c("none", "confidence"),
+  level = 0.95,
+  ...
+)
+
+\method{predFit}{nls}(
+  object,
+  newdata,
+  se.fit = FALSE,
+  interval = c("none", "confidence", "prediction"),
+  level = 0.95,
+  adjust = c("none", "Bonferroni", "Scheffe"),
+  k,
+  ...
+)
 
 \method{predFit}{lme}(object, newdata, se.fit = FALSE, ...)
 }
@@ -29,8 +57,8 @@ are used.}
 \item{newdata}{An optional data frame in which to look for variables with 
 which to predict. If omitted, the fitted values are used.}
 
-\item{se.fit}{A logical vaue indicating if standard errors are required. Default
-is \code{FALSE}.}
+\item{se.fit}{A logical vaue indicating if standard errors are required. 
+Default is \code{FALSE}.}
 
 \item{interval}{Type of interval to be calculated. Can be one of "none" 
 (default), "confidence", or "prediction". Default is \code{"none"}.}
@@ -44,10 +72,79 @@ useful for when the calibration curve is to be used multiple, say k, times.
 Default is \code{FALSE}.}
 
 \item{k}{The number times the calibration curve is to be used for computing 
-a confidence interval. Only needed when \code{adjust = "Bonferroni"}.}
+a confidence/prediction interval. Only needed when 
+\code{adjust = "Bonferroni"}.}
+
+\item{type}{Character string specifying the type of prediction. Current 
+options are \code{type = "link"} (the default) and 
+\code{type = "response"}.}
+}
+\value{
+If \code{se.fit = FALSE}, then \code{predFit()} returns a vector of 
+predictions or a matrix of predictions and bounds with column names 
+\code{fit}, \code{lwr}, and \code{upr} if \code{interval} is not 
+\code{"none"}. (This function is more so meant for internal use.)
+
+If \code{se.fit = TRUE}, then a list with the following components is 
+returned:
+
+\itemize{
+  
+  \item \code{fit} a vector or matrix as described above;
+  
+  \item \code{se.fit} a vector containing the standard errors of the 
+  predicted means;
+  
+  \item \code{residual.scale} the residual standard deviations;
+  
+  \item \code{df} the residual degrees of freedom.
+  
+}
 }
 \description{
-Generic prediction method for various types of fitted models. (For internal 
-use only.)
+Generic prediction method for various types of fitted models. \code{predFit} 
+can be used to obtain standard errors of fitted values and 
+adjusted/unadjusted confidence/prediction intervals for objects of class 
+\code{"lm"}, \code{"nls"}, and \code{"glm"}.
 }
+\details{
+Confidence and prediction intervals for linear models (i.e., \code{"lm"} 
+objects) are obtained according to the usual formulas. Nonlinear and 
+generalized linear models (i.e., \code{"nls"} and \code{"glm"} objects), on 
+the other hand, rely on Taylor-series approximations for the standard errors 
+used in forming the intervals. Approximate standard errors for the fitted 
+values in linear mixed-effects models (i.e., \code{"lme"} objects) can also 
+be computed; however, these rely on the approximate variance-covariance 
+matrix of the fixed-effects estimates and often under estimate the true
+standard error. More accurate standard errors can be obtained using the 
+parametric bootstrap; see \code{\link[lme4]{bootMer}} for details.
 
+For linear and nonlinear models, it is possible to request \emph{adjusted}
+confidence or prediction intervals using the Bonferroni method 
+(\code{adjust = "Bonferroni"}) or Scheffe's method 
+(\code{adjust = "Scheffe"}). For the Bonferroni adjustment, you must specify 
+a value for \code{k}, the number of intervals for which the coverage is to 
+hold simultaneously. For the Scheffe adjustment, specifying a value for 
+\code{k} is only required when \code{interval = "prediction"}; if 
+\code{interval = "confidence"}, \code{k} is set equal to \eqn{p}, the number 
+of regression parameters. For example, calling \code{plotFit} on \code{"lm"}
+objects with \code{interval = "confidence"} and \code{adjust = "Scheffe"} 
+will plot the Working-Hotelling band.
+}
+\examples{
+# A linear regression example (see ?datasets::cars)
+cars.lm <- lm(dist ~ speed + I(speed^2), data = cars)
+predFit(cars.lm, interval = "confidence")
+
+# A nonlinear least squares example (see ?datasets::Puromycin)
+data(Puromycin, package = "datasets")
+Puromycin2 <- Puromycin[Puromycin$state == "treated", ][, 1:2]
+Puro.nls <- nls(rate ~ Vm * conc/(K + conc), data = Puromycin2,
+                start = c(Vm = 200, K = 0.05))
+conc <- seq(from = 0.02, to = 1.10, length = 101)
+pred <- predFit(Puro.nls, newdata = data.frame(conc), interval = "prediction")
+plot(Puromycin2, ylim = c(min(pred[, "lwr"]), max(pred[, "upr"])))
+lines(conc, pred[, "fit"], lwd = 2)
+lines(conc, pred[, "lwr"], lty = 2)
+lines(conc, pred[, "upr"], lty = 2)
+}

@@ -2,28 +2,41 @@
 % Please edit documentation in R/calibrate.R
 \name{calibrate}
 \alias{calibrate}
+\alias{print.calibrate}
 \alias{calibrate.default}
 \alias{calibrate.formula}
 \alias{calibrate.lm}
-\alias{print.calibrate}
-\title{Calibration for the simple linear regression model.}
+\title{Calibration for the simple linear regression model}
 \usage{
 calibrate(object, ...)
 
-\method{calibrate}{default}(object, y0, interval = c("inversion", "Wald",
-  "none"), level = 0.95, mean.response = FALSE, adjust = c("none",
-  "Bonferroni", "Scheffe"), k, ...)
+\method{calibrate}{default}(
+  object,
+  y0,
+  interval = c("inversion", "Wald", "none"),
+  level = 0.95,
+  mean.response = FALSE,
+  adjust = c("none", "Bonferroni", "Scheffe"),
+  k,
+  ...
+)
 
-\method{calibrate}{formula}(formula, data = NULL, ..., subset,
-  na.action = na.fail)
+\method{calibrate}{formula}(formula, data = NULL, ..., subset, na.action = stats::na.fail)
 
-\method{calibrate}{lm}(object, y0, interval = c("inversion", "Wald", "none"),
-  level = 0.95, mean.response = FALSE, adjust = c("none", "Bonferroni",
-  "Scheffe"), k, ...)
+\method{calibrate}{lm}(
+  object,
+  y0,
+  interval = c("inversion", "Wald", "none"),
+  level = 0.95,
+  mean.response = FALSE,
+  adjust = c("none", "Bonferroni", "Scheffe"),
+  k,
+  ...
+)
 }
 \arguments{
-\item{object}{An object that inherits from class \code{"lm"}, a matrix, a 
-list, or a data frame.}
+\item{object}{A matrix, list, data frame, or object that inherits from class 
+\code{\link[stats]{lm}}.}
 
 \item{...}{Additional optional arguments. At present, no optional arguments 
 are used.}
@@ -41,20 +54,19 @@ correspond to an observed response(s) (\code{FALSE}) or a specified value of
 the mean response (\code{TRUE}). Default is \code{FALSE}.}
 
 \item{adjust}{A logical value indicating if an adjustment should be made to
-the critical value used in calculating the confidence interval.
-This useful for when the calibration curve is to be used 
-multiple, say k, times.}
+the critical value used in constructing the confidence interval. This useful 
+when the calibration curve is to be used k > 0 times.}
 
-\item{k}{The number times the calibration curve is to be used for computing a 
-confidence interval. Only needed when \code{adjust = TRUE}.}
+\item{k}{The number of times the calibration curve is to be used for 
+computing a confidence interval. Only needed when \code{adjust = TRUE}.}
 
 \item{formula}{A formula of the form \code{y ~ x}.}
 
 \item{data}{an optional data frame, list or environment (or object coercible 
 by \code{as.data.frame} to a data frame) containing the variables in the 
 model. If not found in data, the variables are taken from 
-\code{environment(formula)}, typically the environment from which \code{lm}
-is called.}
+\code{environment(formula)}, typically the environment from which 
+\code{\link[stats]{lm}} was called.}
 
 \item{subset}{An optional vector specifying a subset of observations to be 
 used in the fitting process.}
@@ -79,19 +91,12 @@ The function \code{calibrate} computes the maximum likelihood estimate and a
 condfidence interval for the unknown predictor value that corresponds to an 
 observed value of the response (or vector thereof) or specified value of the 
 mean response. See the reference listed below for more details.
-
-#' @rdname calibrate
-#' @export
-#' @method calibrate lm
-calibrate.lm <- function(object, ...) {
-  calibrate(formula(object), data = eval(object$call$data), ...)
-}
 }
 \note{
-The function \code{invest} is more general, but based on numerical
-techniques to find the solution. When the underlying model is that of the 
-simple linear regression model with normal errors, closed-form expressions
-exist which are utilized by the function \code{calibrate}.
+The \code{\link{invest}} function is more general, but is based on 
+numerical techniques to find the solution. When the underlying model is that 
+of the simple linear regression model with normal errors, closed-form 
+expressions exist which are utilized by the \code{calibrate} function.
 }
 \examples{
 #
@@ -99,7 +104,7 @@ exist which are utilized by the function \code{calibrate}.
 #
 
 # Inverting a prediction interval for an individual response
-arsenic.lm <- lm(measured ~ actual, data = arsenic)
+arsenic.lm <- stats::lm(measured ~ actual, data = arsenic)
 plotFit(arsenic.lm, interval = "prediction", shade = TRUE, 
         col.pred = "lightblue")
 (cal <- calibrate(arsenic.lm, y0 = 3, interval = "inversion"))
@@ -113,7 +118,7 @@ arrows(cal$upper, 3, cal$upper, par()$usr[3])
 #
 
 # Inverting a confidence interval for the mean response
-crystal.lm <- lm(weight ~ time, data = crystal)
+crystal.lm <- stats::lm(weight ~ time, data = crystal)
 plotFit(crystal.lm, interval = "confidence", shade = TRUE,
         col.conf = "lightblue")
 (cal <- calibrate(crystal.lm, y0 = 8, interval = "inversion", 
@@ -133,4 +138,3 @@ Graybill, F. A., and Iyer, H. K. (1994)
 Miller, R. G. (1981)
 \emph{Simultaneous Statistical Inference}. Springer-Verlag.
 }
-
